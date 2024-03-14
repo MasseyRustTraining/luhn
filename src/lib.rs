@@ -2,10 +2,12 @@
 
 pub fn luhn(cc_number: &str) -> bool {
     let mut sum = 0;
+    let mut count = 0;
     let mut double = false;
 
     for c in cc_number.chars().rev() {
         if let Some(digit) = c.to_digit(10) {
+            count += 1;
             if double {
                 let double_digit = digit * 2;
                 sum +=
@@ -14,12 +16,12 @@ pub fn luhn(cc_number: &str) -> bool {
                 sum += digit;
             }
             double = !double;
-        } else {
-            continue;
+        } else if c != ' ' {
+            return false;
         }
     }
 
-    sum % 10 == 0
+    count >= 2 && sum % 10 == 0
 }
 
 #[cfg(test)]
@@ -38,5 +40,9 @@ mod test {
         assert!(!luhn("4223 9826 4026 9299"));
         assert!(!luhn("4539 3195 0343 6476"));
         assert!(!luhn("8273 1232 7352 0569"));
+        assert!(!luhn(""));
+        assert!(!luhn("0"));
+        assert!(!luhn("1"));
+        assert!(!luhn("7992-7398-713"));
     }
 }
