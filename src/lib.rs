@@ -29,11 +29,23 @@ fn luhn_sum(cc_number: &str) -> Option<(usize, u32)> {
 /// Basic Luhn check. Returns `true` for valid
 /// input and `false` for both syntax error and
 /// checksum failure.
-pub fn luhn_check(cc_number: &str) -> bool {
+///
+/// [luhn_check()] provides more information about failures
+/// and should be used instead.
+#[deprecated]
+pub fn luhn(cc_number: &str) -> bool {
+    let check = luhn_check(cc_number);
+    !check.is_none() && check.unwrap()
+}
+
+/// Luhn check. Returns `Some(true)` for valid input,
+/// `Some(false)` for validation failure, and None` for
+/// invalid syntax.
+pub fn luhn_check(cc_number: &str) -> Option<bool> {
     if let Some((count, sum)) = luhn_sum(cc_number) {
-        count >= 2 && sum % 10 == 0
+        Some(count >= 2 && sum % 10 == 0)
     } else {
-        false
+        None
     }
 }
 
@@ -61,14 +73,19 @@ pub fn luhn_digit(cc_number: &str) -> Option<char> {
 mod test {
     use super::*;
 
-    fn test_both(s: &str, flip: bool) {
-        assert!(luhn_check(s) ^ flip);
-        let mut s = s.to_string();
+    fn test_all(s0: &str, flip: bool) {
+        let mut s = s0.to_string();
+        let d = s.pop();
         if !flip {
-            let d = s.pop().unwrap();
+            #[allow(deprecated)]
+            let l = luhn(s0);
+            assert!(l ^ flip);
+            assert!(luhn_check(s0).unwrap());
+            let d = d.unwrap();
             assert!(luhn_digit(&s).unwrap() == d);
         } else {
-            let d = s.pop();
+            let c = luhn_check(s0);
+            assert!(c.is_none() || !c.unwrap());
             let maybe_d = luhn_digit(&s);
             assert!(d.is_none() || maybe_d.is_none() || maybe_d != d);
         }
@@ -76,19 +93,19 @@ mod test {
 
     #[test]
     fn test_valid_cc_number() {
-        test_both("4263 9826 4026 9299", false);
-        test_both("4539 3195 0343 6467", false);
-        test_both("7992 7398 713", false);
+        test_all("4263 9826 4026 9299", false);
+        test_all("4539 3195 0343 6467", false);
+        test_all("7992 7398 713", false);
     }
 
     #[test]
     fn test_invalid_cc_number() {
-        test_both("4223 9826 4026 9299", true);
-        test_both("4539 3195 0343 6476", true);
-        test_both("8273 1232 7352 0569", true);
-        test_both("", true);
-        test_both("0", true);
-        test_both("1", true);
-        test_both("7992-7398-713", true);
+        test_all("4223 9826 4026 9299", true);
+        test_all("4539 3195 0343 6476", true);
+        test_all("8273 1232 7352 0569", true);
+        test_all("", true);
+        test_all("0", true);
+        test_all("1", true);
+        test_all("7992-7398-713", true);
     }
 }
