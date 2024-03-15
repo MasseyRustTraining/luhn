@@ -61,21 +61,34 @@ pub fn luhn_digit(cc_number: &str) -> Option<char> {
 mod test {
     use super::*;
 
+    fn test_both(s: &str, flip: bool) {
+        assert!(luhn_check(s) ^ flip);
+        let mut s = s.to_string();
+        if !flip {
+            let d = s.pop().unwrap();
+            assert!(luhn_digit(&s).unwrap() == d);
+        } else {
+            let d = s.pop();
+            let maybe_d = luhn_digit(&s);
+            assert!(d.is_none() || maybe_d.is_none() || maybe_d != d);
+        }
+    }
+
     #[test]
     fn test_valid_cc_number() {
-        assert!(luhn_check("4263 9826 4026 9299"));
-        assert!(luhn_check("4539 3195 0343 6467"));
-        assert!(luhn_check("7992 7398 713"));
+        test_both("4263 9826 4026 9299", false);
+        test_both("4539 3195 0343 6467", false);
+        test_both("7992 7398 713", false);
     }
 
     #[test]
     fn test_invalid_cc_number() {
-        assert!(!luhn_check("4223 9826 4026 9299"));
-        assert!(!luhn_check("4539 3195 0343 6476"));
-        assert!(!luhn_check("8273 1232 7352 0569"));
-        assert!(!luhn_check(""));
-        assert!(!luhn_check("0"));
-        assert!(!luhn_check("1"));
-        assert!(!luhn_check("7992-7398-713"));
+        test_both("4223 9826 4026 9299", true);
+        test_both("4539 3195 0343 6476", true);
+        test_both("8273 1232 7352 0569", true);
+        test_both("", true);
+        test_both("0", true);
+        test_both("1", true);
+        test_both("7992-7398-713", true);
     }
 }
