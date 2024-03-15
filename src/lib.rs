@@ -12,8 +12,11 @@ fn luhn_sum(cc_number: &str) -> Option<(usize, u32)> {
             count += 1;
             if double {
                 let double_digit = digit * 2;
-                sum +=
-                    if double_digit > 9 { double_digit - 9 } else { double_digit };
+                sum += if double_digit > 9 {
+                    double_digit - 9
+                } else {
+                    double_digit
+                };
             } else {
                 sum += digit;
             }
@@ -35,7 +38,7 @@ fn luhn_sum(cc_number: &str) -> Option<(usize, u32)> {
 #[deprecated]
 pub fn luhn(cc_number: &str) -> bool {
     let check = luhn_check(cc_number);
-    !check.is_none() && check.unwrap()
+    check.is_some() && check.unwrap()
 }
 
 /// Luhn check. Returns `Some(true)` for valid input,
