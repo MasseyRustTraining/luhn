@@ -20,16 +20,12 @@ fn luhn_sum(cc_number: &str) -> Result<(usize, u32), LuhnError> {
     for c in cc_number.chars().rev() {
         if let Some(digit) = c.to_digit(10) {
             count += 1;
-            if double {
+            sum += if double {
                 let double_digit = digit * 2;
-                sum += if double_digit > 9 {
-                    double_digit - 9
-                } else {
-                    double_digit
-                };
+                double_digit % 10 + double_digit / 10;
             } else {
-                sum += digit;
-            }
+                digit
+            };
             double = !double;
         } else if c != ' ' {
             return Err(LuhnError::SyntaxError(cc_number.to_string()));
