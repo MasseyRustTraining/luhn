@@ -20,8 +20,11 @@ fn luhn_sum(cc_number: &str, mut odd: bool) -> Result<(usize, u32), LuhnError> {
         if let Some(digit) = c.to_digit(10) {
             count += 1;
             sum += if odd {
-                let double_digit = digit * 2;
-                double_digit % 10 + double_digit / 10
+                if digit < 5 {
+                    digit + digit
+                } else {
+                    digit + digit - 9
+                }
             } else {
                 digit
             };
@@ -90,7 +93,7 @@ mod test {
         let l = luhn(s0);
         match expect {
             Ok(()) => {
-                assert!(luhn_check(s0).is_ok());
+                assert!(luhn_check(s0).is_ok(), "{}", s0);
                 assert!(luhn_digit(&s).unwrap() == d.unwrap());
                 assert!(l);
             }
@@ -112,7 +115,6 @@ mod test {
 
     #[test]
     fn test_valid_cc_number() {
-        // should end in 8
         test_all("4263 9826 4026 9299", Ok(()));
         test_all("4539 3195 0343 6467", Ok(()));
         test_all("7992 7398 713", Ok(()));
@@ -124,7 +126,6 @@ mod test {
 
     #[test]
     fn test_invalid_cc_number() {
-        // should succeed
         test_all("4223 9826 4026 9299", Err(CheckFailed));
         test_all("4539 3195 0343 6465", Err(CheckFailed));
         test_all("8273 1232 7352 0563", Err(CheckFailed));
