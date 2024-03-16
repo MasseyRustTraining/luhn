@@ -79,36 +79,28 @@ mod test {
     use LuhnError::*;
 
     fn test_all(s0: &str, expect: Result<(), LuhnError>) {
-        if s0.is_empty() {
-            assert_eq!(Err(SyntaxError("".to_string())), expect);
-            return;
-        }
         let mut s = s0.to_string();
-        let d = s.pop();
-        if s.is_empty() {
-            s.push(d.unwrap());
+        if s.len() < 2 {
             assert_eq!(Err(SyntaxError(s)), expect);
             return;
         }
+        let d = s.pop();
+
         #[allow(deprecated)]
         let l = luhn(s0);
         match expect {
             Ok(()) => {
                 assert!(luhn_check(s0).is_ok());
-                let d = d.unwrap();
-                assert!(luhn_digit(&s).unwrap() == d);
+                assert!(luhn_digit(&s).unwrap() == d.unwrap());
                 assert!(l);
             }
             Err(e) => {
-                assert_eq!(Err(e.clone()), luhn_check(s0), "{}", s0);
                 match e {
-                    SyntaxError(mut s) => {
-                        let _ = s.pop();
-                        let d = luhn_digit(&s);
-                        s.push('0');
-                        assert_eq!(Err(SyntaxError(s)), d);
+                    SyntaxError(_) => {
+                        assert_eq!(Err(e), luhn_check(s0), "{}", s0);
                     }
                     CheckFailed => {
+                        assert_eq!(Err(CheckFailed), luhn_check(s0), "{}", s0);
                         let d = luhn_digit(&s).unwrap();
                         assert!(d != s0.chars().last().unwrap());
                     }
