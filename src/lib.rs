@@ -21,7 +21,7 @@ fn luhn_sum(cc_number: &str, mut odd: bool) -> Result<(usize, u32), LuhnError> {
             count += 1;
             sum += if odd {
                 let double_digit = digit * 2;
-                double_digit % 10 + double_digit / 10;
+                double_digit % 10 + double_digit / 10
             } else {
                 digit
             };
