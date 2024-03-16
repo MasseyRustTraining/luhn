@@ -12,21 +12,20 @@ pub enum LuhnError {
 
 /// Return [Some] Luhn digit count and raw checksum for the
 /// input, or [None] on syntax error.
-fn luhn_sum(cc_number: &str) -> Result<(usize, u32), LuhnError> {
+fn luhn_sum(cc_number: &str, mut odd: bool) -> Result<(usize, u32), LuhnError> {
     let mut sum = 0;
     let mut count = 0;
-    let mut double = false;
 
     for c in cc_number.chars().rev() {
         if let Some(digit) = c.to_digit(10) {
             count += 1;
-            sum += if double {
+            sum += if odd {
                 let double_digit = digit * 2;
                 double_digit % 10 + double_digit / 10;
             } else {
                 digit
             };
-            double = !double;
+            odd = !odd;
         } else if c != ' ' {
             return Err(LuhnError::SyntaxError(cc_number.to_string()));
         }
@@ -52,7 +51,7 @@ pub fn luhn(cc_number: &str) -> bool {
 /// and [LuhnError] for validation failure or
 /// invalid syntax.
 pub fn luhn_check(cc_number: &str) -> Result<(), LuhnError> {
-    let (count, sum) = luhn_sum(cc_number)?;
+    let (count, sum) = luhn_sum(cc_number, false)?;
     if count < 2 || sum % 10 != 0 {
         return Err(LuhnError::CheckFailed);
     }
@@ -64,9 +63,7 @@ pub fn luhn_check(cc_number: &str) -> Result<(), LuhnError> {
 /// [luhn_check()]. Returns an error if `cc_number` is not
 /// syntactically valid.
 pub fn luhn_digit(cc_number: &str) -> Result<char, LuhnError> {
-    let mut cc_padded = cc_number.to_string();
-    cc_padded += "0";
-    let (count, sum) = luhn_sum(&cc_padded)?;
+    let (count, sum) = luhn_sum(cc_number, true)?;
     if count < 2 {
         return Err(LuhnError::SyntaxError(cc_number.to_string()));
     }
